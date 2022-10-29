@@ -2,8 +2,13 @@
 
 set -o pipefail
 
+
 echo "dbt project folder set as: \"${INPUT_DBT_PROJECT_FOLDER}\""
 cd ${INPUT_DBT_PROJECT_FOLDER}
+
+echo "----------------------------------------------------------"
+git diff --name-status origin/main origin/Add_dbt_trail_run_with_pr |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-|xargs -I{} echo "dbt -d  run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select {} --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo\"}'" |bash
+echo "----------------------------------------------------------"
 
 if [ -n "${DBT_BIGQUERY_TOKEN}" ]
 then
