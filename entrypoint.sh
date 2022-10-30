@@ -42,7 +42,7 @@ DBT_ACTION_LOG_PATH="${INPUT_DBT_PROJECT_FOLDER}/${DBT_ACTION_LOG_FILE}"
 echo "DBT_ACTION_LOG_PATH=${DBT_ACTION_LOG_PATH}" >> $GITHUB_ENV
 echo "saving console output in \"${DBT_ACTION_LOG_PATH}\""
 # $1 2>&1 | tee "${DBT_ACTION_LOG_FILE}"
-git diff --name-status origin/main origin/Add_dbt_trail_run_with_pr |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-|xargs -I{} echo "dbt -d  run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select {} --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'" |bash 2>&1 | tee "${DBT_ACTION_LOG_FILE}"
+git diff --name-status origin/main origin/${PR_BRANCH} |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-|xargs -I{} echo "dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select {} --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'" |bash 2>&1 | tee "${DBT_ACTION_LOG_FILE}"
 if [ $? -eq 0 ]
   then
     echo "DBT_RUN_STATE=passed" >> $GITHUB_ENV
