@@ -6,10 +6,6 @@ set -o pipefail
 echo "dbt project folder set as: \"${INPUT_DBT_PROJECT_FOLDER}\""
 cd ${INPUT_DBT_PROJECT_FOLDER}
 
-echo "----------------------------------------------------------"
-git diff --name-status origin/main origin/${PR_BRANCH} |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-|xargs -I{} echo "dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select {} --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'" |bash 2>&1
-echo "----------------------------------------------------------"
-
 if [ -n "${DBT_BIGQUERY_TOKEN}" ]
 then
   echo trying to parse bigquery token
