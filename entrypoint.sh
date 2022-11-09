@@ -37,13 +37,13 @@ DBT_ACTION_LOG_FILE=${DBT_ACTION_LOG_FILE:="dbt_console_output.txt"}
 DBT_ACTION_LOG_PATH="${INPUT_DBT_PROJECT_FOLDER}/${DBT_ACTION_LOG_FILE}"
 echo "DBT_ACTION_LOG_PATH=${DBT_ACTION_LOG_PATH}" >> $GITHUB_ENV
 echo "saving console output in \"${DBT_ACTION_LOG_PATH}\""
-
+final_state=0
 result=$(git diff --name-status origin/main origin/${PR_BRANCH} |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-)
 if [[ $? != 0 ]]; then
     echo "Check delta files failed."
 elif [[ $result ]]; then
-    git diff --name-status origin/main origin/${PR_BRANCH} |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-|xargs -I{} echo "dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select {} --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'" |bash 2>&1 | tee "${DBT_ACTION_LOG_FILE}"
-    if [ $? -eq 0 ]
+    git diff --name-status origin/main origin/${PR_BRANCH} |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-|xargs -I{} echo "dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select {} --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'" |bash || final_state=255 2>&1 | tee "${DBT_ACTION_LOG_FILE}"
+    if [ $final_state -eq 0 ]
       then
         echo "DBT actions run succeed"
         echo "DBT_RUN_STATE=passed" >> $GITHUB_ENV
