@@ -54,7 +54,7 @@ elif [[ $result ]]; then
         echo "::set-output name=result::failed"
         echo "DBT run failed" >> "${DBT_ACTION_LOG_FILE}"
         exit 1
-# fi
+    fi
 else
     echo "No active change found."
 fi
