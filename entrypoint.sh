@@ -42,19 +42,17 @@ result=$(git diff --name-status origin/main origin/${PR_BRANCH} |grep -v zettabl
 if [[ $? != 0 ]]; then
     echo "Check delta files failed."
 elif [[ $result ]]; then
-    git diff --name-status origin/main origin/${PR_BRANCH} |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-|xargs -I{} echo "dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select {} --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'" |bash 2>&1 | tee "${DBT_ACTION_LOG_FILE}"
-    if [ $? -eq 0 ]
-      then
-        echo "DBT actions run succeed"
-        echo "DBT_RUN_STATE=passed" >> $GITHUB_ENV
-        echo "::set-output name=result::passed"
-        echo "DBT run OK" >> "${DBT_ACTION_LOG_FILE}"
-      else
-        echo "DBT_RUN_STATE=failed" >> $GITHUB_ENV
-        echo "::set-output name=result::failed"
-        echo "DBT run failed" >> "${DBT_ACTION_LOG_FILE}"
-        exit 1
-    fi
+    tasks=( $(git diff --name-status origin/main origin/temp_trigger_with_exception_partial |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-) )
+    for item in "${tasks[@]}"
+    do
+        echo $item
+        dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'
+        if [ $? -ne 0 ]
+            then
+                echo "exception."
+                exit 255
+        fi
+    done
 else
     echo "No active change found."
 fi
