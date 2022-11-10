@@ -42,10 +42,10 @@ result=$(git diff --name-status origin/main origin/${PR_BRANCH} |grep -v zettabl
 if [[ $? != 0 ]]; then
     echo "Check delta files failed."
 elif [[ $result ]]; then
-    tasks=( $(git diff --name-status origin/main origin/temp_trigger_with_exception_partial |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-) )
+    tasks=( $(git diff --name-status origin/main origin/${PR_BRANCH} |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-) )
     for item in "${tasks[@]}"
     do
-        echo $item
+        echo "commands: dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'"
         dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'
         if [ $? -ne 0 ]
             then
