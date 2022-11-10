@@ -46,7 +46,7 @@ elif [[ $result ]]; then
     for item in "${tasks[@]}"
     do
         echo "commands: dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'"
-        dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'
+        dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{"external_s3_location":"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)"}'
         if [ $? -ne 0 ]
             then
                 echo "exception."
