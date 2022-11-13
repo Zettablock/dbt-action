@@ -1,3 +1,44 @@
+if [[ $? != 0 ]]; then
+    echo "Check delta files failed."
+elif [[ $result ]]; then
+    tasks=( $(git diff --name-status origin/main origin/add_dbt_trino |grep -v zettablock_data_mart|grep -v macros|grep -v trino|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-) )
+    for item in "${tasks[@]}"
+    do
+        echo "commands: dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'"
+        dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{"external_s3_location":"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)"}'
+        if [ $? -ne 0 ]
+            then
+                echo "exception."
+                exit 255
+        fi
+    done
+
+    trino_tasks=( $(git diff --name-status origin/main origin/add_dbt_trino |grep -v zettablock_data_mart|grep -v macros|grep trino|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-) )
+    for item in "${trino_tasks[@]}"
+    do
+        echo "commands: dbt run --target dev --profiles-dir ./trino_profile --project-dir ./zettablock --select $item --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'"
+        dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{"external_s3_location":"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)", "TRINO_USER":${TRINO_HOST}, "TRINO_PASSWORD":${TRINO_PASSWORD}, "TRINO_HOST":${TRINO_HOST}}'
+        if [ $? -ne 0 ]
+            then
+                echo "exception."
+                exit 255
+        fi
+    done
+
+else
+    echo "No active change found."
+fi
+
+
+
+
+
+
+
+
+
+
+
 #!/bin/bash
 
 set -o pipefail
@@ -38,15 +79,34 @@ DBT_ACTION_LOG_PATH="${INPUT_DBT_PROJECT_FOLDER}/${DBT_ACTION_LOG_FILE}"
 echo "DBT_ACTION_LOG_PATH=${DBT_ACTION_LOG_PATH}" >> $GITHUB_ENV
 echo "saving console output in \"${DBT_ACTION_LOG_PATH}\""
 # final_state=0
-result=$(git diff --name-status origin/main origin/${PR_BRANCH} |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-)
+result=$(git diff --name-status origin/main origin/${PR_BRANCH}  |grep -v zettablock_data_mart|grep -v macros|grep -v trino|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-)
 if [[ $? != 0 ]]; then
     echo "Check delta files failed."
 elif [[ $result ]]; then
-    tasks=( $(git diff --name-status origin/main origin/${PR_BRANCH} |grep -v zettablock_data_mart|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-) )
+    tasks=( $(git diff --name-status origin/main origin/${PR_BRANCH}  |grep -v zettablock_data_mart|grep -v macros|grep -v trino|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-) )
     for item in "${tasks[@]}"
     do
         echo "commands: dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'"
         dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{"external_s3_location":"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)"}'
+        if [ $? -ne 0 ]
+            then
+                echo "exception."
+                exit 255
+        fi
+    done
+else
+    echo "No active change found."
+fi
+
+trino_result=$(git diff --name-status origin/main origin/${PR_BRANCH}  |grep -v zettablock_data_mart|grep -v macros|grep trino|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-)
+if [[ $? != 0 ]]; then
+    echo "Check trno delta files failed."
+elif [[ $trino_result ]]; then
+    tasks=( $(git diff --name-status origin/main origin/${PR_BRANCH}  |grep -v zettablock_data_mart|grep -v macros|grep trino|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-) )
+    for item in "${tasks[@]}"
+    do
+        echo "commands: dbt run --target dev --profiles-dir ./trino_profile --project-dir ./zettablock --select $item --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'"
+        dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{"external_s3_location":"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)", "TRINO_USER":${TRINO_HOST}, "TRINO_PASSWORD":${TRINO_PASSWORD}, "TRINO_HOST":${TRINO_HOST}}' 
         if [ $? -ne 0 ]
             then
                 echo "exception."
