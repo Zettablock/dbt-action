@@ -65,7 +65,7 @@ elif [[ $trino_result ]]; then
     for item in "${tasks[@]}"
     do
         echo "commands: dbt run --target dev --profiles-dir ./trino_profile --project-dir ./zettablock --select $item --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\", , \"TRINO_USER\":$TRINO_USER, \"TRINO_PASSWORD\":$TRINO_PASSWORD, \"TRINO_HOST\":$TRINO_HOST}'"
-        dbt -d run --target dev --profiles-dir ./trino_profile --project-dir ./zettablock --select $item --vars '{"external_s3_location":"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)/", "TRINO_USER":"'"$TRINO_USER"'", "TRINO_PASSWORD":"'"$TRINO_PASSWORD"'", "TRINO_HOST":"'"$TRINO_HOST"'"}' 
+        dbt -d run --target dev --profiles-dir ./trino_profile --project-dir ./zettablock --select $item --vars '{"external_s3_location":"s3://my-897033522173-us-east-1-spark/demo/, "TRINO_USER":"'"$TRINO_USER"'", "TRINO_PASSWORD":"'"$TRINO_PASSWORD"'", "TRINO_HOST":"'"$TRINO_HOST"'"}' 
         if [ $? -ne 0 ]
             then
                 echo "exception."
