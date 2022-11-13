@@ -59,13 +59,13 @@ fi
 
 trino_result=$(git diff --name-status origin/main origin/${PR_BRANCH}  |grep -v zettablock_data_mart|grep -v macros|grep trino|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-)
 if [[ $? != 0 ]]; then
-    echo "Check trno delta files failed."
+    echo "Check trino delta files failed."
 elif [[ $trino_result ]]; then
     tasks=( $(git diff --name-status origin/main origin/${PR_BRANCH}  |grep -v zettablock_data_mart|grep -v macros|grep trino|grep 'sql$'|grep -v '^D'|cut  -f2 |cut -d'/' -f2-) )
     for item in "${tasks[@]}"
     do
         echo "commands: dbt run --target dev --profiles-dir ./trino_profile --project-dir ./zettablock --select $item --vars '{\"external_s3_location\":\"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)\"}'"
-        dbt run --target dev --profiles-dir ./dryrun_profile --project-dir ./zettablock --select $item --vars '{"external_s3_location":"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)", "TRINO_USER":${TRINO_HOST}, "TRINO_PASSWORD":${TRINO_PASSWORD}, "TRINO_HOST":${TRINO_HOST}}' 
+        dbt run --target dev --profiles-dir ./trino_profile --project-dir ./zettablock --select $item --vars '{"external_s3_location":"s3://my-897033522173-us-east-1-spark/demo/$(openssl rand -hex 8)", "TRINO_USER":${TRINO_HOST}, "TRINO_PASSWORD":${TRINO_PASSWORD}, "TRINO_HOST":${TRINO_HOST}}' 
         if [ $? -ne 0 ]
             then
                 echo "exception."
